@@ -19,12 +19,13 @@
 extern int screen_width;
 extern int screen_height;
 
-#define CONFIG_VERSION 13 // config.c: what an older file's settings become
+#define CONFIG_VERSION 14 // config.c: what an older file's settings become
 
 typedef struct {
   int config_version;   // the file's format (CONFIG_VERSION)
-  int screen_width;     // -1 = auto (1280x720 handheld, 1920x1080 docked)
+  int screen_width;     // -1 = auto (1280x720, docked too; docked_1080 1: 1920x1080 docked)
   int screen_height;
+  int docked_1080;      // 1: 1920x1080 when docked (screen size auto); 0: 1280x720 there too
   int vsync;            // 1 = 60 fps cap (FIFO present), 0 = uncapped (vkdk_wsi)
   int gfx_mt;           // the engine's multithreaded rendering (java_unity.c)
   int gfx_jobs;         // Unity's graphics jobs: 0 off, 1 jobs (the older mode), 2 native jobs

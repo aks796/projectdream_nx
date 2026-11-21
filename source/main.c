@@ -214,7 +214,9 @@ static void pick_screen_size(void) {
       config.screen_height <= 1080) {
     screen_width = config.screen_width;
     screen_height = config.screen_height;
-  } else if (docked) {
+  } else if (docked && config.docked_1080) {
+    // (1.0.1: docked at 1280x720 by default -- the dock's GPU clock, 768 MHz, is what 720p at 60 needed in handheld;
+    // 1080p is 2.25 times the pixels. The system scales the picture to the TV. config docked_1080 1: 1920x1080)
     screen_width = 1920;
     screen_height = 1080;
   } else {

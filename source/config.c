@@ -27,6 +27,7 @@
   CONFIG_VAR_INT(job_workers); \
   CONFIG_VAR_INT(fourth_core); \
   CONFIG_VAR_INT(fast_atomics); \
+  CONFIG_VAR_INT(docked_1080); \
   CONFIG_VAR_INT(auto_30); \
   CONFIG_VAR_INT(audio_update_hz); \
   CONFIG_VAR_INT(srp_batcher); \
@@ -222,6 +223,9 @@ int read_config(const char *file) {
       config.dynamic_res_min = 0.65f;
     config.auto_30 = 1;
   }
+  // version 14 (1.0.1): docked at 1280x720 unless docked_1080
+  if (config.config_version < 14)
+    config.docked_1080 = 0;
   // version 13 (the first release): the sampling profiler off (it pauses the main thread 500 times a second for 3 s
   // of every 30); profile 1 turns it on again
   if (config.config_version < 13)
@@ -244,9 +248,11 @@ int write_config(const char *file) {
     "# (this file's format; leave it)\n"
     "config_version %d\n"
     "\n"
-    "# Render size. -1 = auto: 720p handheld, 1080p docked.\n"
+    "# Render size. -1 = auto: 1280x720, docked too (the dock's GPU makes 60\n"
+    "# at 720p). docked_1080 1: 1920x1080 when docked.\n"
     "screen_width %d\n"
     "screen_height %d\n"
+    "docked_1080 %d\n"
     "\n"
     "# 1 = held to the display's 60 Hz, 0 = uncapped.\n"
     "vsync %d\n"
@@ -369,7 +375,7 @@ int write_config(const char *file) {
     "gc_off %d\n"
     "pd_hwcap %d\n"
     "fmod_off %d\n",
-    config.config_version, config.screen_width, config.screen_height, config.vsync, config.gfx_mt, config.gfx_jobs, config.main_core, config.job_workers, config.fourth_core, config.srp_batcher, (double)config.lod_bias, config.shadows, (double)config.shadow_distance, config.dynamic_res, (double)config.dynamic_res_min, config.auto_30, (double)config.max_delta, (double)config.fixed_step, config.vsync_wait, config.fps_unlock, config.rumble, config.video_threads, config.video_fast, config.pd_patches, config.fast_atomics, config.audio_update_hz,
+    config.config_version, config.screen_width, config.screen_height, config.docked_1080, config.vsync, config.gfx_mt, config.gfx_jobs, config.main_core, config.job_workers, config.fourth_core, config.srp_batcher, (double)config.lod_bias, config.shadows, (double)config.shadow_distance, config.dynamic_res, (double)config.dynamic_res_min, config.auto_30, (double)config.max_delta, (double)config.fixed_step, config.vsync_wait, config.fps_unlock, config.rumble, config.video_threads, config.video_fast, config.pd_patches, config.fast_atomics, config.audio_update_hz,
     config.language, config.country, config.shader_log, config.log_all, config.log_jni, config.log_fs,
     config.log_net, config.log_diag, config.profile, config.dump_threads_at, config.test_script, config.brk_unity, config.boot_extra, config.sample_main, config.capture_at, config.gc_off, config.pd_hwcap, config.fmod_off);
   fclose(f);
