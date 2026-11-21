@@ -1,0 +1,9 @@
+build/
+build_vkdk/
+build_vkdk*.log
+*.elf
+*.nro
+*.nacp
+*.map
+SD_CARD/
+*.zip
