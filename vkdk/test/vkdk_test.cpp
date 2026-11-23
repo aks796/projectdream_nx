@@ -63,7 +63,7 @@ void Check(bool ok, const char* what) {
   X(vkGetQueryPoolResults) X(vkCreateFence) X(vkQueueSubmit) X(vkWaitForFences) X(vkResetFences)                 \
   X(vkInvalidateMappedMemoryRanges) X(vkCreateViSurfaceNN) X(vkCreateSwapchainKHR) X(vkGetSwapchainImagesKHR)   \
   X(vkAcquireNextImageKHR) X(vkQueuePresentKHR) X(vkCmdBlitImage) X(vkCreateSemaphore) X(vkCreateInstance)       \
-  X(vkEnumeratePhysicalDevices)
+  X(vkEnumeratePhysicalDevices) X(vkGetPhysicalDeviceFormatProperties) X(vkGetPhysicalDeviceFeatures)
 DEVICE_FUNCS(F)
 #undef F
 
@@ -616,6 +616,79 @@ int main() {
     }
     Say("      volume copy: %u of %u texels different", wrong, uint32_t(blocks.size()) * 64);
     Check(wrong == 0, "11. 8x8 blocks of a 2D image into a 3D one as one compute pass, exact");
+  }
+
+  {
+    // 12. An ASTC 4x4 texture (Project Dream's Android build transcodes the game's textures to ASTC 4x4): 8x8 texels,
+    // 2x2 blocks, each a void-extent block of one colour -- red, green / blue, white, as the RGBA8 texture above --
+    // uploaded and sampled through binding element 5.
+    VkImageCreateInfo ci{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
+    ci.imageType = VK_IMAGE_TYPE_2D;
+    ci.format = VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
+    ci.extent = {8, 8, 1};
+    ci.mipLevels = ci.arrayLayers = 1;
+    ci.samples = VK_SAMPLE_COUNT_1_BIT;
+    ci.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    VkFormatProperties fp{};
+    vkGetPhysicalDeviceFormatProperties(pd, ci.format, &fp);
+    VkPhysicalDeviceFeatures feats{};
+    vkGetPhysicalDeviceFeatures(pd, &feats);
+    Say("      ASTC 4x4: textureCompressionASTC_LDR %u, optimal features %08x", feats.textureCompressionASTC_LDR,
+        fp.optimalTilingFeatures);
+    VkImage astc = VK_NULL_HANDLE;
+    VkImageView astcView = VK_NULL_HANDLE;
+    bool made = feats.textureCompressionASTC_LDR && (fp.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) &&
+                vkCreateImage(dev, &ci, nullptr, &astc) == VK_SUCCESS;
+    if (made) {
+      VkMemoryRequirements r;
+      vkGetImageMemoryRequirements(dev, astc, &r);
+      Mem m = alloc(r.size, 0);
+      vkBindImageMemory(dev, astc, m.memory, 0);
+      VkImageViewCreateInfo vi{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+      vi.image = astc;
+      vi.viewType = VK_IMAGE_VIEW_TYPE_2D;
+      vi.format = ci.format;
+      vi.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+      made = vkCreateImageView(dev, &vi, nullptr, &astcView) == VK_SUCCESS;
+    }
+    if (made) {
+      // void-extent LDR block: the low 64 bits 0xFFFFFFFFFFFFFDFC, then R, G, B, A as UNORM16
+      auto block = [](uint8_t* out, uint16_t r, uint16_t g, uint16_t b, uint16_t a) {
+        const uint64_t lo = 0xFFFFFFFFFFFFFDFCull;
+        const uint64_t hi = uint64_t(r) | (uint64_t(g) << 16) | (uint64_t(b) << 32) | (uint64_t(a) << 48);
+        memcpy(out, &lo, 8);
+        memcpy(out + 8, &hi, 8);
+      };
+      uint8_t* blocks = upload.cpu + 512 + 64;  // tbuf + 64
+      block(blocks + 0, 0xFFFF, 0, 0, 0xFFFF);
+      block(blocks + 16, 0, 0xFFFF, 0, 0xFFFF);
+      block(blocks + 32, 0, 0, 0xFFFF, 0xFFFF);
+      block(blocks + 48, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF);
+      VkCommandBufferBeginInfo bi{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+      vkBeginCommandBuffer(cmd, &bi);
+      VkBufferImageCopy up{};
+      up.bufferOffset = 64;
+      up.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+      up.imageExtent = {8, 8, 1};
+      vkCmdCopyBufferToImage(cmd, tbuf, astc, VK_IMAGE_LAYOUT_GENERAL, 1, &up);
+      vkEndCommandBuffer(cmd);
+      VkSubmitInfo s{VK_STRUCTURE_TYPE_SUBMIT_INFO};
+      s.commandBufferCount = 1;
+      s.pCommandBuffers = &cmd;
+      vkResetFences(dev, 1, &fence);
+      vkQueueSubmit(queue, 1, &s, fence);
+      vkWaitForFences(dev, 1, &fence, VK_TRUE, UINT64_MAX);
+      VkDescriptorImageInfo astcInfo{nullptr, astcView, VK_IMAGE_LAYOUT_GENERAL};
+      VkWriteDescriptorSet aw = w[1];
+      aw.pImageInfo = &astcInfo;
+      vkUpdateDescriptorSets(dev, 1, &aw, 0, nullptr);
+      run(2, 0, false, magenta);
+      Say("      ASTC texture: %08x %08x %08x %08x", pixel(8, 8), pixel(56, 8), pixel(8, 56), pixel(56, 56));
+      made = near(pixel(8, 8), 0xFF0000FF) && near(pixel(56, 8), 0xFF00FF00) && near(pixel(8, 56), 0xFFFF0000) &&
+             near(pixel(56, 56), 0xFFFFFFFF);
+      vkUpdateDescriptorSets(dev, 1, &w[1], 0, nullptr);  // element 5 back to the RGBA8 texture
+    }
+    Check(made, "12. ASTC 4x4 texture (advertised, uploaded, sampled)");
   }
 
   Say("%d passed, %d failed", g_passed, g_failed);

@@ -7,3 +7,5 @@ build_vkdk*.log
 *.map
 SD_CARD/
 *.zip
+tools/builder/bin/
+tools/builder/obj/

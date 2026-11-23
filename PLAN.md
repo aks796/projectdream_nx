@@ -441,3 +441,35 @@ Hardware round 20: "too strong". Build 202611201639: every pattern's amplitudes 
 
 Project Lucid (github.com/dev-camo/project-lucid): another route to the same game. Not used; worth reading if the
 Mach-O loader route stalls.
+
+Release 1.0.0 (2026-11-20): renamed projectdream_nx; published as github.com/aks796/projectdream_nx (export
+../github_repo without tools/prepare), release v1.0.0 (NRO only). Glyphs built into the NRO; tested settings as
+defaults (touch controls and chromatic aberration off).
+1.0.1 (c7cb33e, build 202611201702): docked draws at 1280x720 by default (config docked_1080 1 = 1080p), since 720p at
+60 already needed the dock's 768 MHz GPU. Licence corrected: vkdk/ and saltynx.c are GPL-3.0 and devkitPro's FFmpeg is
+a GPL build, so the NRO is GPL-3.0 (LICENSE); the so-loader-lineage files stay MIT (source/LICENSE);
+THIRD_PARTY_NOTICES.md; README in the pvzdlc_nx/mmim_nx layout. Pushed as c37ddef; release v1.0.1 published 2026-11-20
+(release/projectdream_nx_v1.0.1.zip, NRO only).
+
+Tester report (2026-11-22, 1.0.1): black screen with an APK from Project Dream's own Android build. The likely cause
+(not confirmed: no log yet): Project Dream's ApkBuilder transcodes every desktop texture (BC1/3/7, crunched DXT,
+Texture2DArray BC7) to ASTC 4x4 and BC6H to RGBAHalf (TextureTranscoder.cs), which tools/prepare skips -- so every
+test so far ran BC textures, and vkdk offered no ASTC at all (Unity then decompresses each texture to RGBA32 on the
+CPU, or fails). Its entries are stored like ours, 4-byte aligned (ours 4 KB; the port reads any offset).
+1.0.2 (build 202611222233): vkdk ASTC LDR, every block size (VK_FORMAT_ASTC_* -> DkImageFormat_RGBA_ASTC_*,
+16-byte blocks, textureCompressionASTC_LDR, tile rows by the block height); vkdk_test check 12 (an 8x8 ASTC 4x4
+texture of four void-extent blocks, sampled) passes in Ryubing. Game still boots in Ryubing with the BC test APK.
+Not yet run with a real Project Dream APK (the Mac has 4.5 GB free: no room for a second, transcoded test APK).
+
+projectdream_builder (tools/builder, 2026-11-22): the players' way to make sdt.apk without Windows and without
+Project Dream's code in this repository. A .NET 10 program (self-contained single file per platform, ~37 MB) that
+loads the player's own Project_Dream.exe (IL only but marked x64: on Arm64 the PE machine field is set to Arm64 in
+the in-memory copy) and calls its code by reflection: ShaderRead + AssetDocument (shaders), Addressables.UpdateCatalog
+(checksums), ApkBuilder.ThinArm64 / PatchGameAssembly / PatchLibUnity; its AssetsTools.NET and Iced come from the
+exe's resources. Own code: the settings.json rewrite, globalgamemanagers (Vulkan, blit type, GPU skinning off,
+Swappy off, the Android shader defines), the zip, and Unity's Android player streamed from Unity's own download
+(address + SHA-256 from the exe's tool-downloads.json; xar -> gzip cpio, three files kept). Project Dream on
+Mac/Linux: it wraps paths as Windows long paths ("\\?\" + full path) -- the work folder gets a link named "\\?\"
+to "/" and becomes the current directory; its catalog step looks for bundles by backslash paths -- hard links by
+those names during that step. Result: sdt.apk byte-identical to tools/prepare's (md5 8194924a, 78 bundles'
+checksums) in 28 s with the Unity files at hand.

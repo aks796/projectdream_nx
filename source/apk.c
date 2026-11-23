@@ -1,8 +1,9 @@
 /* apk.c -- set the game up from sdt.apk (see apk.h)
  *
- * sdt.apk is what tools/prepare makes from the player's own macOS Sonic Dream
- * Team and Project Dream: laid out as Project Dream's Android APK, every entry
- * stored. At launch this finds it next to the .nro (any name ending in .apk;
+ * sdt.apk is what tools/builder (projectdream_builder) makes from the player's
+ * own macOS Sonic Dream Team and Project_Dream.exe: laid out as Project Dream's
+ * Android APK, every entry stored (Project Dream's own Android build works too:
+ * ASTC textures, 4-byte aligned). At launch this finds it next to the .nro (any name ending in .apk;
  * the biggest wins), checks it is one, and extracts lib/arm64-v8a/*.so
  * (libunity.so, Project Dream's libil2cpp.so) to internal/lib/ once.
  * Everything else Unity and Project Dream's loader read straight from the
@@ -191,9 +192,10 @@ int apk_setup(GameInfo *info) {
     char msg[700];
     snprintf(msg, sizeof msg,
              "No game file in %s/.\n\n"
-             "Make the Android build of your own macOS Sonic\n"
-             "Dream Team 1.10.1 with Project Dream on a PC, then\n"
-             "copy its .apk into this folder.",
+             "Make sdt.apk from your own macOS Sonic Dream Team\n"
+             "1.10.1 and Project_Dream.exe with projectdream_builder\n"
+             "(on the port's GitHub page), or make the Android\n"
+             "build with Project Dream, and put it in this folder.",
              path_base());
     setup_ui_message("sdt.apk is missing", msg);
     return -1;
@@ -218,8 +220,9 @@ int apk_setup(GameInfo *info) {
     char msg[700];
     snprintf(msg, sizeof msg,
              "The .apk in %s/ is not the game's Android\n"
-             "build. Make it with Project Dream from the macOS\n"
-             "game 1.10.1 (debug.log says what was missing).",
+             "build. Make it with projectdream_builder or Project\n"
+             "Dream from the macOS game 1.10.1 (debug.log says\n"
+             "what was missing).",
              path_base());
     setup_ui_message("Not a Sonic Dream Team game file", msg);
     return -1;

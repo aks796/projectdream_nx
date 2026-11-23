@@ -15,6 +15,14 @@ trademarks of SEGA.
 The button icons in `source/glyphs_data.c` (L, R, + and -) are the game's own LB, RB, Menu and View icons, redrawn by
 `tools/switch_glyphs.py`. The NRO icon (`projectdream_nx.jpg`) is made from the game's logo. Both are SEGA's art.
 
+## The builder (`tools/builder/`)
+
+`projectdream_builder` loads the player's own `Project_Dream.exe` and calls Project Dream's conversion code in it (the
+shader conversion, the Addressables checksums, the GameAssembly and libunity patches, with Project Dream's own copy of
+AssetsTools.NET from the exe); none of that code is in this repository or in the builder. Unity's Android player is
+downloaded from Unity by the player's builder, from the address in their `Project_Dream.exe`. Its release builds are
+self-contained: they carry the .NET runtime (Microsoft, MIT) and System.IO.Hashing (Microsoft, MIT).
+
 ## Loader (`source/`)
 
 | Code | From | Licence |

@@ -534,6 +534,7 @@ static void FillFeatures(VkPhysicalDeviceFeatures& f) {
   f.depthBounds = VK_TRUE;
   f.samplerAnisotropy = VK_TRUE;
   f.textureCompressionBC = VK_TRUE;
+  f.textureCompressionASTC_LDR = VK_TRUE;  // (Project Dream's Android build: ASTC 4x4 textures)
   f.occlusionQueryPrecise = VK_TRUE;
   f.pipelineStatisticsQuery = VK_FALSE;  // one counter only (vkdk_cmd.cpp QueryCounter): not advertised
   f.vertexPipelineStoresAndAtomics = VK_TRUE;
@@ -1200,7 +1201,9 @@ static VKAPI_ATTR VkResult VKAPI_CALL CreateImage(VkDevice d, const VkImageCreat
   img->renderable = (flags & DkImageFlags_UsageRender) != 0 && type != DkImageType_3D;
   uint32_t rows = m.dimensions[1] ? m.dimensions[1] : 1;
   if (IsCompressed(format)) {
-    rows = (rows + 3) / 4;
+    uint32_t bw = 4, bh = 4;
+    FormatBlockBytes(info->format, bw, bh);  // (ASTC blocks can be 4 to 12 rows tall)
+    rows = (rows + bh - 1) / bh;
   }
   TileSizeFix(m, rows);
   dkImageLayoutInitialize(&img->layout, &m);

@@ -82,6 +82,36 @@ DkImageFormat ToDkFormat(VkFormat format) {
     case VK_FORMAT_BC6H_SFLOAT_BLOCK: return DkImageFormat_RGBA_BC6H_SF16_Float;
     case VK_FORMAT_BC7_UNORM_BLOCK: return DkImageFormat_RGBA_BC7_Unorm;
     case VK_FORMAT_BC7_SRGB_BLOCK: return DkImageFormat_RGBA_BC7_Unorm_sRGB;
+    // ASTC (LDR): Project Dream's Android build transcodes the Mac game's BC textures to ASTC 4x4 for phones (players'
+    // APKs; the port's own test APK kept BC). The Tegra X1 samples ASTC natively.
+    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_4x4;
+    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_4x4_sRGB;
+    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_5x4;
+    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_5x4_sRGB;
+    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_5x5;
+    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_5x5_sRGB;
+    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_6x5;
+    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_6x5_sRGB;
+    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_6x6;
+    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_6x6_sRGB;
+    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_8x5;
+    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_8x5_sRGB;
+    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_8x6;
+    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_8x6_sRGB;
+    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_8x8;
+    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_8x8_sRGB;
+    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_10x5;
+    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_10x5_sRGB;
+    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_10x6;
+    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_10x6_sRGB;
+    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_10x8;
+    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_10x8_sRGB;
+    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_10x10;
+    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_10x10_sRGB;
+    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_12x10;
+    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_12x10_sRGB;
+    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: return DkImageFormat_RGBA_ASTC_12x12;
+    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK: return DkImageFormat_RGBA_ASTC_12x12_sRGB;
     // Depth: the console's own 24-bit depth for D24S8 (renut-nx: 4 bytes a pixel, not ZF32_X24S8's 8).
     case VK_FORMAT_D16_UNORM: return DkImageFormat_Z16;
     case VK_FORMAT_X8_D24_UNORM_PACK32: return DkImageFormat_Z24X8;
@@ -159,6 +189,62 @@ uint32_t FormatBlockBytes(VkFormat f, uint32_t& bw, uint32_t& bh) {
     case VK_FORMAT_BC6H_UFLOAT_BLOCK: case VK_FORMAT_BC6H_SFLOAT_BLOCK: case VK_FORMAT_BC7_UNORM_BLOCK:
     case VK_FORMAT_BC7_SRGB_BLOCK:
       bw = bh = 4;
+      return 16;
+    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
+      bw = 4;
+      bh = 4;
+      return 16;
+    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK: case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
+      bw = 5;
+      bh = 4;
+      return 16;
+    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK: case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
+      bw = 5;
+      bh = 5;
+      return 16;
+    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK: case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
+      bw = 6;
+      bh = 5;
+      return 16;
+    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK: case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
+      bw = 6;
+      bh = 6;
+      return 16;
+    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK: case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
+      bw = 8;
+      bh = 5;
+      return 16;
+    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK: case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
+      bw = 8;
+      bh = 6;
+      return 16;
+    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK: case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
+      bw = 8;
+      bh = 8;
+      return 16;
+    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK: case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
+      bw = 10;
+      bh = 5;
+      return 16;
+    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK: case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
+      bw = 10;
+      bh = 6;
+      return 16;
+    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
+      bw = 10;
+      bh = 8;
+      return 16;
+    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK: case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
+      bw = 10;
+      bh = 10;
+      return 16;
+    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK: case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
+      bw = 12;
+      bh = 10;
+      return 16;
+    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+      bw = 12;
+      bh = 12;
       return 16;
     default:
       return 0;

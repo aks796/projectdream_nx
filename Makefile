@@ -13,7 +13,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 TARGET		:=	projectdream_nx
 APP_TITLE	:=	Sonic Dream Team
 APP_AUTHOR	:=	aks796, Beatz / SEGA HARDlight
-APP_VERSION	:=	1.0.1
+APP_VERSION	:=	1.0.2
 BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data
