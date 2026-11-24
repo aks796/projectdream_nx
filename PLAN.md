@@ -473,3 +473,16 @@ Mac/Linux: it wraps paths as Windows long paths ("\\?\" + full path) -- the work
 to "/" and becomes the current directory; its catalog step looks for bundles by backslash paths -- hard links by
 those names during that step. Result: sdt.apk byte-identical to tools/prepare's (md5 8194924a, 78 bundles'
 checksums) in 28 s with the Unity files at hand.
+
+Release 1.0.2 (2026-11-23): github_repo f6647ef pushed; release v1.0.2 (Latest) with projectdream_nx_v1.0.2.zip
+(NRO build 202611222307) and five builder zips (win-x64, osx-arm64, osx-x64, linux-x64, linux-arm64; each with the
+NRO). Builder run on macOS arm64 (local and downloaded Unity files) and Linux arm64 (Docker, libssl3): same APK.
+Windows, Intel Mac and Linux x64 builds not run yet. The Project Dream Android APK route (ASTC) is not tested on a
+console; the tester's debug.log would confirm the black-screen cause.
+
+Builder 1.0.2.1 (2026-11-23, win-x64 only): first Windows tester stopped at "The macOS game has no
+Resources\unity_builtin_extra". Cause (confirmed in Project Dream's code): ShaderRead turns '/' into
+Path.DirectorySeparatorChar when it reads its shader list, so on Windows its names have backslashes, and the builder
+looked them up in the game's '/' file list (Mac/Linux unaffected). Fix: names normalized to '/' for the lookup, PD's own
+name kept for Apply. Also: zip entry names with backslashes, a zip with Contents/ at the top, 4-part version banner,
+publish.sh RIDS= and per-platform cleanup. Windows build not run here (no Windows/Wine; disk under 1 GB).

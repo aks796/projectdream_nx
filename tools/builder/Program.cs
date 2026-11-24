@@ -23,7 +23,8 @@ internal static class Program
 
 	private static int Main(string[] args)
 	{
-		Console.WriteLine("projectdream_builder " + typeof(Program).Assembly.GetName().Version?.ToString(3) +
+		Version v = typeof(Program).Assembly.GetName().Version ?? new Version(0, 0, 0);
+		Console.WriteLine("projectdream_builder " + v.ToString(v.Revision > 0 ? 4 : 3) +
 		                  ": the game file for " + Port + " (Sonic Dream Team on the Switch)");
 		Console.WriteLine();
 		bool interactive = args.Length == 0;

@@ -45,15 +45,18 @@ internal sealed class Steps
 	{
 		object shaders = pd.New("ProjectDream.Shaders.ShaderRead", "shader-android");
 		List<string> targets = ((IEnumerable<string>)ProjectDream.Property(shaders, "Files")).OrderBy(x => x, StringComparer.Ordinal).ToList();
+		// Project Dream names its files with the system's separator ("Resources\unity_builtin_extra" on Windows), the
+		// game's file list with '/'; Apply below takes Project Dream's own names
 		foreach (string rel in targets.Concat(new[] { "globalgamemanagers", "StreamingAssets/aa/catalog.json", "StreamingAssets/aa/settings.json" }))
 		{
-			if (!files.Contains(D + rel))
+			string name = rel.Replace('\\', '/');
+			if (!files.Contains(D + name))
 			{
-				throw new UserError("The macOS game has no " + rel + " (is it version 1.10.1?).");
+				throw new UserError("The macOS game has no " + name + " (is it version 1.10.1?).");
 			}
 			if (!File.Exists(Path.Combine(data, rel)))
 			{
-				mac.Copy(D + rel, Path.Combine(data, rel));
+				mac.Copy(D + name, Path.Combine(data, rel));
 			}
 		}
 		int errors = 0, done = 0;
@@ -254,7 +257,7 @@ internal sealed class Steps
 		{
 			void Add(string rel, string name)
 			{
-				string conv = Path.Combine(converted, rel.Substring(D.Length));
+				string conv = Path.Combine(converted, rel.Substring(D.Length).Replace('/', Path.DirectorySeparatorChar));
 				if (rel.StartsWith(D, StringComparison.Ordinal) && File.Exists(conv))
 				{
 					zip.AddFile(conv, name);

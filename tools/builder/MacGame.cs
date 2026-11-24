@@ -70,14 +70,16 @@ internal abstract class MacGame : IDisposable
 			{
 				throw new UserError(path + " is not a .zip file.");
 			}
+			// entry names with '/' (some Windows zip tools write backslashes); the app's Contents/ may be at the top
+			static string Name(ZipArchiveEntry e) => e.FullName.Replace('\\', '/');
 			string prefix = null;
 			foreach (ZipArchiveEntry e in zip.Entries)
 			{
-				int i = e.FullName.IndexOf("/Contents/" + Data + "globalgamemanagers", StringComparison.Ordinal);
-				if (i >= 0 && !e.FullName.StartsWith("__MACOSX/", StringComparison.Ordinal) &&
-				    e.FullName.EndsWith("globalgamemanagers", StringComparison.Ordinal))
+				string n = "/" + Name(e);
+				int i = n.IndexOf("/Contents/" + Data + "globalgamemanagers", StringComparison.Ordinal);
+				if (i >= 0 && !n.StartsWith("/__MACOSX/", StringComparison.Ordinal) && n.EndsWith("/globalgamemanagers", StringComparison.Ordinal))
 				{
-					prefix = e.FullName.Substring(0, i) + "/Contents/";
+					prefix = (n.Substring(0, i) + "/Contents/").Substring(1);
 					break;
 				}
 			}
@@ -87,9 +89,10 @@ internal abstract class MacGame : IDisposable
 			}
 			foreach (ZipArchiveEntry e in zip.Entries)
 			{
-				if (e.FullName.StartsWith(prefix, StringComparison.Ordinal) && !e.FullName.EndsWith("/", StringComparison.Ordinal))
+				string n = Name(e);
+				if (n.StartsWith(prefix, StringComparison.Ordinal) && !n.EndsWith("/", StringComparison.Ordinal))
 				{
-					entries[e.FullName.Substring(prefix.Length)] = e;
+					entries[n.Substring(prefix.Length)] = e;
 				}
 			}
 		}

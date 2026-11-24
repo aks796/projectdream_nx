@@ -1,7 +1,7 @@
 #!/bin/sh
 # Release builds of projectdream_builder: one self-contained program per platform (nothing to install), each zipped
 # with projectdream_nx.nro so the folder it writes is ready for the SD card.
-#   tools/builder/publish.sh <projectdream_nx.nro> <output folder> [version]
+#   [RIDS="win-x64 ..."] tools/builder/publish.sh <projectdream_nx.nro> <output folder> [version]
 # Needs the .NET SDK (10 or newer). On macOS the Mac builds come out ad-hoc signed (Apple Silicon runs nothing
 # unsigned); players still confirm the first start (right-click, Open).
 set -eu
@@ -11,7 +11,7 @@ mkdir -p "$2"; out=$(cd "$2" && pwd)
 version=${3:-1.0.0}
 dotnet=${DOTNET:-dotnet}
 command -v "$dotnet" >/dev/null 2>&1 || dotnet="$HOME/.dotnet/dotnet"
-for rid in win-x64 osx-arm64 osx-x64 linux-x64 linux-arm64; do
+for rid in ${RIDS:-win-x64 osx-arm64 osx-x64 linux-x64 linux-arm64}; do
   stage="$out/stage/$rid"
   rm -rf "$stage"
   "$dotnet" publish "$here/ProjectDreamBuilder.csproj" -c Release -r "$rid" -o "$stage" -p:Version="$version" -v q --nologo
@@ -32,5 +32,7 @@ EOF
   rm -f "$out/projectdream_builder_${version}_$rid.zip"
   (cd "$stage" && zip -q -r -X "$out/projectdream_builder_${version}_$rid.zip" .)
   ls -la "$out/projectdream_builder_${version}_$rid.zip"
+  # each platform's build output is ~100 MB: gone before the next one
+  rm -rf "$stage" "$here/bin/Release/net10.0/$rid" "$here/obj/Release/net10.0/$rid"
 done
 rm -rf "$out/stage"
